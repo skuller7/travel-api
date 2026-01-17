@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8">
+  <title>Travel API – Login</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <h1>Travel System</h1>
+
+  <form id="loginForm">
+    <h2>Login</h2>
+    <input type="email" placeholder="Email" id="loginEmail" required />
+    <input type="password" placeholder="Password" id="loginPassword" required />
+    <button type="submit">Login</button>
+  </form>
+
+  <form id="registerForm">
+    <h2>Register</h2>
+    <input type="text" placeholder="Name" id="regName" required />
+    <input type="email" placeholder="Email" id="regEmail" required />
+    <input type="password" placeholder="Password" id="regPassword" required />
+    <select id="regRole">
+      <option value="PUTNIK">PUTNIK</option>
+      <option value="OPERATOR">OPERATOR</option>
+    </select>
+    <button type="submit">Register</button>
+  </form>
+
+  <script src="/js/auth.js"></script>
+</body>
+</html>
