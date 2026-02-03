@@ -1,11 +1,11 @@
-import Container from "react-bootstrap/Container";
-import './App.scss'
+import './App.css'
 
 function App() {
     return (
-        <Container>
-            <h1>Travel API - Frontend</h1>
-        </Container>
+        <div className="app-container">
+            <h1>Travel API</h1>
+            <p>Frontend je aktivan</p>
+        </div>
     )
 }
 
