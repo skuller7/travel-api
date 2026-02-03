@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "postinstall": "npm --prefix frontend install",
     "dev": "nodemon --exec ts-node src/server.ts",
     "dev:full": "concurrently \"nodemon --exec ts-node src/server.ts\" \"npm --prefix frontend run dev\"",
     "build": "cd frontend && npm run build && cd .. && tsc",
