@@ -59,64 +59,79 @@ const corsOptions: CorsOptions = {
   credentials: true,
 };
 
-// app.use(cors(corsOptions));
+// Setup middleware
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"], 
+      styleSrc: ["'self'", "'unsafe-inline'"], 
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "http://*", "https://*"],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+      formAction: ["'self'", "http://*", "https://*"],
+    },
+  },
+  crossOriginResourcePolicy: { policy: "cross-origin" }, 
+  crossOriginOpenerPolicy: false,
+}));
 
-// app.use(express.json());
-// app.use(express.urlencoded({ extended: true }));
+app.use(cors(corsOptions)); 
+app.use(express.json()); 
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+app.use(compression({ threshold: 1024 }));
+app.use(limiter);
+app.use((req, _res, next) => {
+  console.log(req.method, req.url);
+  next();
+});
 
-// app.use(cookieParser());
-// app.use(compression({ threshold: 1024 }));
-// app.use(helmet());
-// app.use(limiter);
+// API rute - PRVO pre statickog servera
+app.use("/api/v1", v1Routes);
 
+// Služi React frontend iz frontend/dist (production build)
+const frontendDistPath = path.join(__dirname, "../frontend/dist");
+app.use(express.static(frontendDistPath));
 
+// SPA fallback - sve rute koje nisu API vraćaju index.html
+app.get("*", (req, res) => {
+  if (!req.path.startsWith("/api")) {
+    const indexPath = path.join(frontendDistPath, "index.html");
+    res.sendFile(indexPath);
+  }
+});
+
+// Start server
 (async () => {
   try {
     await db.connectToDatabase();
     
-    app.use(helmet({
-      contentSecurityPolicy: {
-        directives: {
-          defaultSrc: ["'self'"],
-          scriptSrc: ["'self'", "'unsafe-inline'"], 
-          styleSrc: ["'self'", "'unsafe-inline'"], 
-          imgSrc: ["'self'", "data:", "https:"],
-          connectSrc: ["'self'", "http://*", "https://*"],
-          fontSrc: ["'self'"],
-          objectSrc: ["'none'"],
-          mediaSrc: ["'self'"],
-          frameSrc: ["'none'"],
-          formAction: ["'self'", "http://*", "https://*"],
-        },
-      },
-      crossOriginResourcePolicy: { policy: "cross-origin" }, 
-      crossOriginOpenerPolicy: false,
-    }));
-    
-    app.use(cors(corsOptions)); 
-    app.use(express.json()); 
-    app.use(express.urlencoded({ extended: true }));
-    app.use(cookieParser());
-    app.use(compression({ threshold: 1024 }));
-    app.use(limiter);
-    app.use((req, _res, next) => {
-      console.log(req.method, req.url);
-      next();
-    });
-    
-    const publicPath = path.join(__dirname, config.NODE_ENV === "production" ? "../public" : "./public");
-    app.use(express.static(publicPath));
-    
-    app.get("/", (_req, res) => {
-      const indexPath = path.join(publicPath, "index.html");
-      res.sendFile(indexPath);
-    });
-    
-    app.use("/api/v1", v1Routes);
-
-    app.listen(config.PORT, () => {
+    const server = app.listen(config.PORT, () => {
       logger.info(`Server radi na port-u: http://localhost:${config.PORT}`);
     });
+
+    // Graceful shutdown handlers
+    const handleServerShutdown = async () => {
+      console.log("\nShutting down server...");
+      server.close(async () => {
+        try {
+          await db.disconnectFromDatabase();
+          logger.info("Server se gasi");
+          process.exit(0);
+        } catch (err) {
+          logger.error("Greska na server-u.", err);
+          process.exit(1);
+        }
+      });
+    };
+
+    process.on("SIGTERM", handleServerShutdown);
+    process.on("SIGINT", handleServerShutdown);
+
   } catch (err) {
     logger.error("Neuspelo pokretanje server", err);
 
@@ -125,16 +140,3 @@ const corsOptions: CorsOptions = {
     }
   }
 })();
-
-const handleServerShutdown = async () => {
-  try {
-    await db.disconnectFromDatabase();
-    logger.info("Server se gasi");
-    process.exit(0);
-  } catch (err) {
-    logger.error("Greska na server-u.", err);
-  }
-};
-
-process.on("SIGTERM", handleServerShutdown);
-process.on("SIGINT", handleServerShutdown);

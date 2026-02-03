@@ -19,11 +19,6 @@ const config = {
   JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET!,
   ACCESS_TOKEN_EXPIRY: process.env.ACCESS_TOKEN_EXPIRY as ms.StringValue,
   REFRESH_TOKEN_EXPIRY: process.env.REFRESH_TOKEN_EXPIRY as ms.StringValue,
-  GRAYLOG_ENABLED: process.env.GRAYLOG_ENABLED === "true",
-  GRAYLOG_HOST: process.env.GRAYLOG_HOST || "57.129.100.83",
-  GRAYLOG_PORT: parseInt(process.env.GRAYLOG_PORT || "12201", 10),
-  GRAYLOG_FACILITY: process.env.GRAYLOG_FACILITY || "Node.js",
-  GRAYLOG_HOSTNAME: process.env.GRAYLOG_HOSTNAME || "server-api"
 };
 
 
